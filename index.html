@@ -5,52 +5,69 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Activity Monitor</title>
 <style>
-:root { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: dark; }
+:root {
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color-scheme: dark;
+  --bg:#0f1117; --bg-header:#0f1117ee; --text:#e8eaf0; --muted:#9299aa;
+  --border:#252a36; --border-soft:#292f3c; --border-strong:#343b4b;
+  --surface:#151922; --surface-alt:#191e28; --surface-alt-hover:#222936;
+  --surface-quick:#1b2130; --surface-quick-hover:#242c3c;
+  --pill-bg:#232a38; --footer:#737b8c; --section-title:#7d8496;
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg:#f5f6f9; --bg-header:#f5f6f9ee; --text:#1b1e27; --muted:#5c6270;
+  --border:#dde1e9; --border-soft:#e3e6ed; --border-strong:#c9cedb;
+  --surface:#ffffff; --surface-alt:#f1f2f6; --surface-alt-hover:#e7e9f0;
+  --surface-quick:#eceffb; --surface-quick-hover:#e0e5fa;
+  --pill-bg:#e8eaf1; --footer:#7a8091; --section-title:#6c7280;
+}
 * { box-sizing: border-box; }
-body { margin:0; background:#0f1117; color:#e8eaf0; min-height:100vh; }
-header { padding:22px 28px; border-bottom:1px solid #252a36; display:flex; justify-content:space-between; align-items:center; gap:16px; position:sticky; top:0; background:#0f1117ee; backdrop-filter:blur(12px); z-index:5; }
+body { margin:0; background:var(--bg); color:var(--text); min-height:100vh; transition:background .15s ease, color .15s ease; }
+header { padding:22px 28px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:16px; position:sticky; top:0; background:var(--bg-header); backdrop-filter:blur(12px); z-index:5; }
 h1 { margin:0; font-size:22px; }
-.muted { color:#9299aa; font-size:13px; }
-.controls { display:flex; gap:8px; flex-wrap:wrap; }
-button { border:1px solid #343b4b; background:#191e28; color:#e8eaf0; padding:9px 13px; border-radius:9px; cursor:pointer; }
-button:hover { background:#222936; }
+.muted { color:var(--muted); font-size:13px; }
+.controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+button { border:1px solid var(--border-strong); background:var(--surface-alt); color:var(--text); padding:9px 13px; border-radius:9px; cursor:pointer; font-family:inherit; }
+button:hover { background:var(--surface-alt-hover); }
+.icon-btn { width:38px; padding:0; font-size:15px; display:flex; align-items:center; justify-content:center; font-weight:600; }
+.controls-divider { width:1px; align-self:stretch; background:var(--border-soft); margin:0 2px; }
 main { max-width:1250px; margin:0 auto; padding:24px; }
-.status { border:1px solid #303747; border-radius:16px; padding:22px; margin-bottom:18px; background:#151922; display:flex; align-items:center; gap:18px; }
+.status { border:1px solid var(--border-strong); border-radius:16px; padding:22px; margin-bottom:18px; background:var(--surface); display:flex; align-items:center; gap:18px; }
 .dot { width:18px; height:18px; border-radius:50%; background:#777; box-shadow:0 0 18px #777; flex:none; }
 .dot.active { background:#42d77d; box-shadow:0 0 18px #42d77d; }
 .dot.hidden, .dot.inactive { background:#e2a83b; box-shadow:0 0 18px #e2a83b; }
 .dot.stopped { background:#e05d6f; box-shadow:0 0 18px #e05d6f; }
 .status-title { font-size:24px; font-weight:750; }
 .grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
-.card { background:#151922; border:1px solid #292f3c; border-radius:13px; padding:16px; min-height:92px; }
-.label { color:#9299aa; font-size:12px; margin-bottom:8px; }
+.card { background:var(--surface); border:1px solid var(--border-soft); border-radius:13px; padding:16px; min-height:92px; }
+.label { color:var(--muted); font-size:12px; margin-bottom:8px; }
 .value { font-size:19px; font-weight:650; overflow-wrap:anywhere; }
 .section { margin-top:22px; }
 .section h2 { font-size:16px; margin:0 0 11px; }
-.table-wrap { border:1px solid #292f3c; border-radius:13px; overflow:auto; max-height:430px; background:#151922; }
+.table-wrap { border:1px solid var(--border-soft); border-radius:13px; overflow:auto; max-height:430px; background:var(--surface); }
 table { width:100%; border-collapse:collapse; font-size:13px; }
-th,td { padding:10px 12px; text-align:left; border-bottom:1px solid #252a36; white-space:nowrap; }
-th { color:#9299aa; font-weight:600; position:sticky; top:0; background:#151922; }
+th,td { padding:10px 12px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; }
+th { color:var(--muted); font-weight:600; position:sticky; top:0; background:var(--surface); }
 tr:last-child td { border-bottom:0; }
-.pill { display:inline-block; padding:3px 7px; border-radius:999px; background:#232a38; font-size:11px; }
-.footer { color:#737b8c; font-size:12px; margin-top:16px; line-height:1.5; }
+.pill { display:inline-block; padding:3px 7px; border-radius:999px; background:var(--pill-bg); font-size:11px; }
+.footer { color:var(--footer); font-size:12px; margin-top:16px; line-height:1.5; }
 .log-header { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:11px; }
 .log-header h2 { margin:0; }
-.filter-panel { margin-bottom:12px; padding:14px; border:1px solid #292f3c; border-radius:13px; background:#151922; }
+.filter-panel { margin-bottom:12px; padding:14px; border:1px solid var(--border-soft); border-radius:13px; background:var(--surface); }
 .filter-title { font-size:13px; font-weight:600; margin-bottom:10px; display:flex; align-items:center; gap:8px; }
 .filter-actions { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
 .filter-events { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px, 1fr)); gap:7px; }
-.filter-event { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid #292f3c; border-radius:8px; background:#191e28; cursor:pointer; font-size:12px; user-select:none; }
-.filter-event:hover { background:#222936; }
+.filter-event { display:flex; align-items:center; gap:8px; padding:7px 9px; border:1px solid var(--border-soft); border-radius:8px; background:var(--surface-alt); cursor:pointer; font-size:12px; user-select:none; }
+.filter-event:hover { background:var(--surface-alt-hover); }
 .filter-event input { margin:0; }
-.filter-count { color:#9299aa; font-size:12px; margin-left:auto; font-weight:400; }
-.filter-quick { margin-bottom:16px; padding-bottom:14px; border-bottom:1px dashed #292f3c; }
-.filter-quick .filter-event { background:#1b2130; border-color:#343b4b; }
-.filter-quick .filter-event:hover { background:#242c3c; }
-.filter-section-title { font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:#9299aa; margin:0 0 8px; font-weight:600; }
+.filter-count { color:var(--muted); font-size:12px; margin-left:auto; font-weight:400; }
+.filter-quick { margin-bottom:16px; padding-bottom:14px; border-bottom:1px dashed var(--border-soft); }
+.filter-quick .filter-event { background:var(--surface-quick); border-color:var(--border-strong); }
+.filter-quick .filter-event:hover { background:var(--surface-quick-hover); }
+.filter-section-title { font-size:11px; text-transform:uppercase; letter-spacing:.04em; color:var(--section-title); margin:0 0 8px; font-weight:600; }
 .filter-category { margin-bottom:14px; }
 .filter-category:last-child { margin-bottom:0; }
-.filter-category .filter-section-title { color:#7d8496; }
 @media (max-width:900px) { .grid { grid-template-columns:repeat(2,1fr); } }
 @media (max-width:560px) { header { align-items:flex-start; flex-direction:column; } .grid { grid-template-columns:1fr; } main { padding:14px; } }
 </style>
@@ -58,14 +75,17 @@ tr:last-child td { border-bottom:0; }
 <body>
 <header>
 <div>
-<h1>Activity Monitor</h1>
-<div class="muted">Diagnostics of the current tab's activity</div>
+<h1 data-i18n="app_title">Activity Monitor</h1>
+<div class="muted" data-i18n="app_subtitle">Diagnostics of the current tab's activity</div>
 </div>
 <div class="controls">
-<button id="start">Start</button>
-<button id="pause">Pause</button>
-<button id="clear">Clear</button>
-<button id="export">Export JSON</button>
+<button id="themeToggle" class="icon-btn" aria-label="Toggle theme">🌙</button>
+<button id="langToggle" class="icon-btn" aria-label="Switch language">EN</button>
+<span class="controls-divider"></span>
+<button id="start" data-i18n="btn_start">Start</button>
+<button id="pause" data-i18n="btn_pause">Pause</button>
+<button id="clear" data-i18n="btn_clear">Clear</button>
+<button id="export" data-i18n="btn_export">Export JSON</button>
 </div>
 </header>
 
@@ -79,32 +99,32 @@ tr:last-child td { border-bottom:0; }
 </section>
 
 <section class="grid">
-<div class="card"><div class="label">Visibility</div><div class="value" id="visibility">—</div></div>
-<div class="card"><div class="label">Focus</div><div class="value" id="focus">—</div></div>
-<div class="card"><div class="label">Fullscreen</div><div class="value" id="fullscreen">—</div></div>
-<div class="card"><div class="label">Online</div><div class="value" id="online">—</div></div>
-<div class="card"><div class="label">Viewport size</div><div class="value" id="viewport">—</div></div>
-<div class="card"><div class="label">Screen size</div><div class="value" id="screen">—</div></div>
-<div class="card"><div class="label">Device Pixel Ratio</div><div class="value" id="dpr">—</div></div>
-<div class="card"><div class="label">Last activity</div><div class="value" id="lastActivity">—</div></div>
+<div class="card"><div class="label" data-i18n="card_visibility">Visibility</div><div class="value" id="visibility">—</div></div>
+<div class="card"><div class="label" data-i18n="card_focus">Focus</div><div class="value" id="focus">—</div></div>
+<div class="card"><div class="label" data-i18n="card_fullscreen">Fullscreen</div><div class="value" id="fullscreen">—</div></div>
+<div class="card"><div class="label" data-i18n="card_online">Online</div><div class="value" id="online">—</div></div>
+<div class="card"><div class="label" data-i18n="card_viewport">Viewport size</div><div class="value" id="viewport">—</div></div>
+<div class="card"><div class="label" data-i18n="card_screen">Screen size</div><div class="value" id="screen">—</div></div>
+<div class="card"><div class="label" data-i18n="card_dpr">Device Pixel Ratio</div><div class="value" id="dpr">—</div></div>
+<div class="card"><div class="label" data-i18n="card_last_activity">Last activity</div><div class="value" id="lastActivity">—</div></div>
 </section>
 
 <section class="section">
-<h2>Statistics</h2>
+<h2 data-i18n="section_statistics">Statistics</h2>
 <div class="grid">
-<div class="card"><div class="label">Monitoring time</div><div class="value" id="monitorTime">00:00</div></div>
-<div class="card"><div class="label">Active time*</div><div class="value" id="activeTime">00:00</div></div>
-<div class="card"><div class="label">Hidden count</div><div class="value" id="hiddenCount">0</div></div>
-<div class="card"><div class="label">Focus lost</div><div class="value" id="blurCount">0</div></div>
-<div class="card"><div class="label">Focus regained</div><div class="value" id="focusCount">0</div></div>
-<div class="card"><div class="label">Mouse moves</div><div class="value" id="mouseCount">0</div></div>
-<div class="card"><div class="label">Clicks</div><div class="value" id="clickCount">0</div></div>
-<div class="card"><div class="label">Key presses</div><div class="value" id="keyCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_monitor_time">Monitoring time</div><div class="value" id="monitorTime">00:00</div></div>
+<div class="card"><div class="label" data-i18n="stat_active_time">Active time*</div><div class="value" id="activeTime">00:00</div></div>
+<div class="card"><div class="label" data-i18n="stat_hidden">Hidden count</div><div class="value" id="hiddenCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_blur">Focus lost</div><div class="value" id="blurCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_focus">Focus regained</div><div class="value" id="focusCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_mouse">Mouse moves</div><div class="value" id="mouseCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_click">Clicks</div><div class="value" id="clickCount">0</div></div>
+<div class="card"><div class="label" data-i18n="stat_key">Key presses</div><div class="value" id="keyCount">0</div></div>
 </div>
 </section>
 
 <section class="section">
-<h2>Current state</h2>
+<h2 data-i18n="section_current_state">Current state</h2>
 <div class="table-wrap">
 <table><tbody id="details"></tbody></table>
 </div>
@@ -112,35 +132,35 @@ tr:last-child td { border-bottom:0; }
 
 <section class="section">
 <div class="log-header">
-<h2>Event Log</h2>
-<button id="filterToggle">⚙ Filters</button>
+<h2 data-i18n="section_event_log">Event Log</h2>
+<button id="filterToggle" data-i18n="btn_filters">⚙ Filters</button>
 </div>
 <div id="filterPanel" class="filter-panel" hidden>
 <div class="filter-title">
-Show selected events
+<span data-i18n="filter_show_selected">Show selected events</span>
 <span id="filterCount" class="filter-count"></span>
 </div>
 <div class="filter-actions">
-<button id="filterShowAll">Select all</button>
-<button id="filterHideAll">Select none</button>
+<button id="filterShowAll" data-i18n="btn_select_all">Select all</button>
+<button id="filterHideAll" data-i18n="btn_select_none">Select none</button>
 </div>
 <div class="filter-quick">
-<div class="filter-section-title">Frequently used</div>
+<div class="filter-section-title" data-i18n="filter_quick_title">Frequently used</div>
 <div id="filterQuick" class="filter-events"></div>
 </div>
 <div id="filterCategories"></div>
 </div>
 <div class="table-wrap">
 <table>
-<thead><tr><th>Time</th><th>Event</th><th>Details</th></tr></thead>
+<thead><tr><th data-i18n="th_time">Time</th><th data-i18n="th_event">Event</th><th data-i18n="th_details">Details</th></tr></thead>
 <tbody id="log"></tbody>
 </table>
 </div>
 </section>
 
 <div class="footer">
-* "Active time" here means the time during which the page was simultaneously visible and focused.
-This is a diagnostic tool built on browser APIs, not a full anti-cheat system.
+<div data-i18n="footer_note1">* "Active time" here means the time during which the page was simultaneously visible and focused.</div>
+<div data-i18n="footer_note2">This is a diagnostic tool built on browser APIs, not a full anti-cheat system.</div>
 </div>
 </main>
 
@@ -148,69 +168,115 @@ This is a diagnostic tool built on browser APIs, not a full anti-cheat system.
 (() => {
 const $ = id => document.getElementById(id);
 
-// --- Event catalog: every event the monitor can track, grouped by category ---
-const EVENT_CATALOG = [
-  { category: 'Mouse', events: [
-    { id:'CLICK', tip:'Left mouse button click' },
-    { id:'DBLCLICK', tip:'Mouse double-click' },
-    { id:'CONTEXTMENU', tip:'Right-click / context menu opened' },
-    { id:'MOUSEDOWN', tip:'Mouse button pressed down' },
-    { id:'MOUSEUP', tip:'Mouse button released' },
-    { id:'MOUSE_MOVE', tip:'Mouse pointer moved' },
-    { id:'WHEEL', tip:'Mouse wheel scrolled' },
-  ]},
-  { category: 'Keyboard & Clipboard', events: [
-    { id:'KEY_DOWN', tip:'Keyboard key pressed' },
-    { id:'KEY_UP', tip:'Keyboard key released' },
-    { id:'COPY', tip:'Content copied to the clipboard' },
-    { id:'CUT', tip:'Content cut to the clipboard' },
-    { id:'PASTE', tip:'Content pasted from the clipboard' },
-  ]},
-  { category: 'Page & Window', events: [
-    { id:'FOCUS', tip:'Page regained focus' },
-    { id:'BLUR', tip:'Page lost focus' },
-    { id:'VISIBILITY_VISIBLE', tip:'Tab became visible' },
-    { id:'VISIBILITY_HIDDEN', tip:'Tab became hidden' },
-    { id:'SCROLL', tip:'Page was scrolled' },
-    { id:'RESIZE', tip:'Window was resized' },
-    { id:'FULLSCREEN_CHANGE', tip:'Fullscreen mode was toggled' },
-  ]},
-  { category: 'Network', events: [
-    { id:'ONLINE', tip:'Network connection restored' },
-    { id:'OFFLINE', tip:'Network connection lost' },
-  ]},
-  { category: 'Touch', events: [
-    { id:'TOUCHSTART', tip:'Touch contact started' },
-    { id:'TOUCHEND', tip:'Touch contact ended' },
-    { id:'TOUCHMOVE', tip:'Touch point moved' },
-    { id:'TOUCHCANCEL', tip:'Touch interrupted by the system' },
-  ]},
-  { category: 'Drag & Drop', events: [
-    { id:'DRAGSTART', tip:'Drag operation started' },
-    { id:'DRAGEND', tip:'Drag operation ended' },
-    { id:'DROP', tip:'An item was dropped' },
-  ]},
-  { category: 'Selection', events: [
-    { id:'SELECTION_CHANGE', tip:'Text selection changed' },
-  ]},
-  { category: 'Page Lifecycle', events: [
-    { id:'PAGESHOW', tip:'Page shown (including from back/forward cache)' },
-    { id:'PAGEHIDE', tip:'Page hidden (including to back/forward cache)' },
-    { id:'BEFOREUNLOAD', tip:'Page is about to be unloaded' },
-    { id:'LOAD', tip:'Page finished loading' },
-  ]},
-  { category: 'Monitor', events: [
-    { id:'MONITOR_STARTED', tip:'Monitoring session started' },
-    { id:'MONITOR_PAUSED', tip:'Monitoring session paused' },
-  ]},
-];
+// ---------------------------------------------------------------------
+// i18n: event identifiers (CLICK, FOCUS, ...) and object/detail keys
+// (x, y, key, code, visibility, dpr, ...) are treated like variable
+// names and always stay in English. Everything else — headings,
+// button labels, status text, category names, tooltips — is translatable.
+// ---------------------------------------------------------------------
+const STRINGS = {
+  en: {
+    app_title:'Activity Monitor',
+    app_subtitle:"Diagnostics of the current tab's activity",
+    btn_start:'Start', btn_pause:'Pause', btn_clear:'Clear', btn_export:'Export JSON',
+    btn_filters:'⚙ Filters', btn_select_all:'Select all', btn_select_none:'Select none',
+    theme_toggle_title:'Toggle theme', lang_toggle_title:'Switch language',
+    status_waiting:'Waiting', status_active:'ACTIVE', status_hidden:'HIDDEN', status_focus_lost:'FOCUS LOST',
+    sub_waiting:'Click "Start"', sub_active:'Page is visible and focused', sub_inactive:'Page is not in a normal active state',
+    card_visibility:'Visibility', card_focus:'Focus', card_fullscreen:'Fullscreen', card_online:'Online',
+    card_viewport:'Viewport size', card_screen:'Screen size', card_dpr:'Device Pixel Ratio', card_last_activity:'Last activity',
+    section_statistics:'Statistics',
+    stat_monitor_time:'Monitoring time', stat_active_time:'Active time*', stat_hidden:'Hidden count',
+    stat_blur:'Focus lost', stat_focus:'Focus regained', stat_mouse:'Mouse moves', stat_click:'Clicks', stat_key:'Key presses',
+    section_current_state:'Current state', section_event_log:'Event Log',
+    filter_show_selected:'Show selected events', filter_quick_title:'Frequently used',
+    th_time:'Time', th_event:'Event', th_details:'Details',
+    footer_note1:'* "Active time" here means the time during which the page was simultaneously visible and focused.',
+    footer_note2:'This is a diagnostic tool built on browser APIs, not a full anti-cheat system.',
+    online_value:'online', offline_value:'offline',
+    filter_count:(shown,total)=>`Showing ${shown} of ${total}`,
+  },
+  ru: {
+    app_title:'Монитор активности',
+    app_subtitle:'Диагностика активности текущей вкладки',
+    btn_start:'Старт', btn_pause:'Пауза', btn_clear:'Очистить', btn_export:'Экспорт JSON',
+    btn_filters:'⚙ Фильтры', btn_select_all:'Выбрать все', btn_select_none:'Снять все',
+    theme_toggle_title:'Сменить тему', lang_toggle_title:'Сменить язык',
+    status_waiting:'Ожидание', status_active:'АКТИВНО', status_hidden:'СКРЫТО', status_focus_lost:'ФОКУС ПОТЕРЯН',
+    sub_waiting:'Нажмите «Старт»', sub_active:'Страница видима и находится в фокусе', sub_inactive:'Страница не в обычном активном состоянии',
+    card_visibility:'Видимость', card_focus:'Фокус', card_fullscreen:'Полноэкранный режим', card_online:'Подключение',
+    card_viewport:'Размер viewport', card_screen:'Размер экрана', card_dpr:'Device Pixel Ratio', card_last_activity:'Последняя активность',
+    section_statistics:'Статистика',
+    stat_monitor_time:'Время мониторинга', stat_active_time:'Активное время*', stat_hidden:'Скрыто раз',
+    stat_blur:'Потеря фокуса', stat_focus:'Возврат фокуса', stat_mouse:'Движения мыши', stat_click:'Клики', stat_key:'Нажатия клавиш',
+    section_current_state:'Текущее состояние', section_event_log:'Журнал событий',
+    filter_show_selected:'Показывать выбранные события', filter_quick_title:'Часто используемые',
+    th_time:'Время', th_event:'Событие', th_details:'Детали',
+    footer_note1:'* «Активное время» здесь означает время, когда страница была одновременно видима и находилась в фокусе.',
+    footer_note2:'Это диагностический инструмент на основе браузерных API, а не полноценная система античита.',
+    online_value:'онлайн', offline_value:'офлайн',
+    filter_count:(shown,total)=>`Показано ${shown} из ${total}`,
+  },
+};
 
-const TIP_BY_ID = {};
-const ALL_EVENT_IDS = [];
-EVENT_CATALOG.forEach(cat => cat.events.forEach(ev => {
-  TIP_BY_ID[ev.id] = ev.tip;
-  ALL_EVENT_IDS.push(ev.id);
-}));
+const CATEGORY_LABELS = {
+  en: { mouse:'Mouse', keyboard:'Keyboard & Clipboard', page:'Page & Window', network:'Network',
+        touch:'Touch', dragdrop:'Drag & Drop', selection:'Selection', lifecycle:'Page Lifecycle', monitor:'Monitor' },
+  ru: { mouse:'Мышь', keyboard:'Клавиатура и буфер обмена', page:'Страница и окно', network:'Сеть',
+        touch:'Сенсорный ввод', dragdrop:'Перетаскивание', selection:'Выделение', lifecycle:'Жизненный цикл страницы', monitor:'Монитор' },
+};
+
+const TOOLTIPS = {
+  en: {
+    CLICK:'Left mouse button click', DBLCLICK:'Mouse double-click', CONTEXTMENU:'Right-click / context menu opened',
+    MOUSEDOWN:'Mouse button pressed down', MOUSEUP:'Mouse button released', MOUSE_MOVE:'Mouse pointer moved', WHEEL:'Mouse wheel scrolled',
+    KEY_DOWN:'Keyboard key pressed', KEY_UP:'Keyboard key released',
+    COPY:'Content copied to the clipboard', CUT:'Content cut to the clipboard', PASTE:'Content pasted from the clipboard',
+    FOCUS:'Page regained focus', BLUR:'Page lost focus',
+    VISIBILITY_VISIBLE:'Tab became visible', VISIBILITY_HIDDEN:'Tab became hidden',
+    SCROLL:'Page was scrolled', RESIZE:'Window was resized', FULLSCREEN_CHANGE:'Fullscreen mode was toggled',
+    ONLINE:'Network connection restored', OFFLINE:'Network connection lost',
+    TOUCHSTART:'Touch contact started', TOUCHEND:'Touch contact ended', TOUCHMOVE:'Touch point moved', TOUCHCANCEL:'Touch interrupted by the system',
+    DRAGSTART:'Drag operation started', DRAGEND:'Drag operation ended', DROP:'An item was dropped',
+    SELECTION_CHANGE:'Text selection changed',
+    PAGESHOW:'Page shown (including from back/forward cache)', PAGEHIDE:'Page hidden (including to back/forward cache)',
+    BEFOREUNLOAD:'Page is about to be unloaded', LOAD:'Page finished loading',
+    MONITOR_STARTED:'Monitoring session started', MONITOR_PAUSED:'Monitoring session paused',
+  },
+  ru: {
+    CLICK:'Левый клик мышью', DBLCLICK:'Двойной клик мышью', CONTEXTMENU:'Открыто контекстное меню (правый клик)',
+    MOUSEDOWN:'Кнопка мыши нажата', MOUSEUP:'Кнопка мыши отпущена', MOUSE_MOVE:'Перемещение курсора мыши', WHEEL:'Прокрутка колесом мыши',
+    KEY_DOWN:'Нажата клавиша клавиатуры', KEY_UP:'Клавиша клавиатуры отпущена',
+    COPY:'Контент скопирован в буфер обмена', CUT:'Контент вырезан в буфер обмена', PASTE:'Контент вставлен из буфера обмена',
+    FOCUS:'Страница получила фокус', BLUR:'Страница потеряла фокус',
+    VISIBILITY_VISIBLE:'Вкладка стала видимой', VISIBILITY_HIDDEN:'Вкладка стала скрытой',
+    SCROLL:'Страница прокручена', RESIZE:'Изменён размер окна', FULLSCREEN_CHANGE:'Переключён полноэкранный режим',
+    ONLINE:'Подключение к сети восстановлено', OFFLINE:'Подключение к сети потеряно',
+    TOUCHSTART:'Начато касание экрана', TOUCHEND:'Касание экрана завершено', TOUCHMOVE:'Перемещение точки касания', TOUCHCANCEL:'Касание прервано системой',
+    DRAGSTART:'Начато перетаскивание', DRAGEND:'Перетаскивание завершено', DROP:'Элемент был отпущен (drop)',
+    SELECTION_CHANGE:'Изменилось выделение текста',
+    PAGESHOW:'Страница показана (в т.ч. из кэша)', PAGEHIDE:'Страница скрыта (в т.ч. в кэш)',
+    BEFOREUNLOAD:'Страница будет закрыта или перезагружена', LOAD:'Страница полностью загружена',
+    MONITOR_STARTED:'Сессия мониторинга запущена', MONITOR_PAUSED:'Сессия мониторинга приостановлена',
+  },
+};
+
+const AVAILABLE_LANGS = ['en','ru']; // add more languages here later by adding a STRINGS/TOOLTIPS/CATEGORY_LABELS entry
+
+// --- Event catalog: every event the monitor can track, grouped by category ---
+// Category "key" and event ids are canonical identifiers (English, never translated).
+const EVENT_CATALOG = [
+  { key:'mouse', events:['CLICK','DBLCLICK','CONTEXTMENU','MOUSEDOWN','MOUSEUP','MOUSE_MOVE','WHEEL'] },
+  { key:'keyboard', events:['KEY_DOWN','KEY_UP','COPY','CUT','PASTE'] },
+  { key:'page', events:['FOCUS','BLUR','VISIBILITY_VISIBLE','VISIBILITY_HIDDEN','SCROLL','RESIZE','FULLSCREEN_CHANGE'] },
+  { key:'network', events:['ONLINE','OFFLINE'] },
+  { key:'touch', events:['TOUCHSTART','TOUCHEND','TOUCHMOVE','TOUCHCANCEL'] },
+  { key:'dragdrop', events:['DRAGSTART','DRAGEND','DROP'] },
+  { key:'selection', events:['SELECTION_CHANGE'] },
+  { key:'lifecycle', events:['PAGESHOW','PAGEHIDE','BEFOREUNLOAD','LOAD'] },
+  { key:'monitor', events:['MONITOR_STARTED','MONITOR_PAUSED'] },
+];
+const ALL_EVENT_IDS = EVENT_CATALOG.flatMap(c => c.events);
 
 // The 10 events most useful for spotting whether someone stepped away / switched tabs / pasted, etc.
 const QUICK_EVENT_IDS = [
@@ -223,13 +289,24 @@ const DEFAULT_HIDDEN_IDS = new Set(['MOUSE_MOVE','WHEEL','TOUCHMOVE']);
 
 const MOTION_DEBOUNCE_MS = 500;
 
+function readStored(key, fallback) {
+  try { return localStorage.getItem(key) || fallback; } catch { return fallback; }
+}
+function writeStored(key, value) {
+  try { localStorage.setItem(key, value); } catch { /* ignore (private mode etc.) */ }
+}
+
 const state = {
   running:false, startedAt:0, pausedAt:0, totalPaused:0,
   lastStateChange:0, activeAccum:0, activeNow:false,
   lastActivity:0, events:[], counts:{hidden:0,blur:0,focus:0,mouse:0,click:0,key:0},
   lastMouseLog:0, lastWheelLog:0, lastTouchMoveLog:0, lastSelectionLog:0,
-  hiddenEventTypes:new Set(DEFAULT_HIDDEN_IDS)
+  hiddenEventTypes:new Set(DEFAULT_HIDDEN_IDS),
+  theme: readStored('am_theme', 'dark'),
+  lang: AVAILABLE_LANGS.includes(readStored('am_lang','en')) ? readStored('am_lang','en') : 'en',
 };
+
+function t(key) { return STRINGS[state.lang][key] ?? STRINGS.en[key] ?? key; }
 
 const fmtTime = ms => {
   ms = Math.max(0, Math.floor(ms/1000));
@@ -283,9 +360,9 @@ function isEventVisible(event) {
   return !state.hiddenEventTypes.has(event.type);
 }
 
-function makeFilterEvent(id, { quick=false } = {}) {
+function makeFilterEvent(id) {
   const checked = !state.hiddenEventTypes.has(id) ? 'checked' : '';
-  const tip = TIP_BY_ID[id] || '';
+  const tip = TOOLTIPS[state.lang][id] || '';
   return `
     <label class="filter-event" title="${tip.replace(/"/g,'&quot;')}">
       <input type="checkbox" data-event-type="${id}" ${checked}>
@@ -295,19 +372,19 @@ function makeFilterEvent(id, { quick=false } = {}) {
 }
 
 function renderEventFilter() {
-  $('filterQuick').innerHTML = QUICK_EVENT_IDS.map(id => makeFilterEvent(id, {quick:true})).join('');
+  $('filterQuick').innerHTML = QUICK_EVENT_IDS.map(makeFilterEvent).join('');
 
   $('filterCategories').innerHTML = EVENT_CATALOG.map(cat => `
     <div class="filter-category">
-      <div class="filter-section-title">${cat.category}</div>
+      <div class="filter-section-title">${CATEGORY_LABELS[state.lang][cat.key]}</div>
       <div class="filter-events">
-        ${cat.events.map(ev => makeFilterEvent(ev.id)).join('')}
+        ${cat.events.map(makeFilterEvent).join('')}
       </div>
     </div>
   `).join('');
 
   const shownCount = ALL_EVENT_IDS.length - state.hiddenEventTypes.size;
-  $('filterCount').textContent = `Showing ${shownCount} of ${ALL_EVENT_IDS.length}`;
+  $('filterCount').textContent = t('filter_count')(shownCount, ALL_EVENT_IDS.length);
 }
 
 function updateActiveClock() {
@@ -322,12 +399,12 @@ function render() {
   const s = snapshot();
   const active = state.running && s.visibility === 'visible' && s.focus;
   $('dot').className = 'dot ' + (!state.running ? 'stopped' : active ? 'active' : s.visibility === 'hidden' ? 'hidden' : 'inactive');
-  $('statusTitle').textContent = !state.running ? 'Waiting' : active ? 'ACTIVE' : s.visibility === 'hidden' ? 'HIDDEN' : 'FOCUS LOST';
-  $('statusSub').textContent = !state.running ? 'Click "Start"' : active ? 'Page is visible and focused' : 'Page is not in a normal active state';
+  $('statusTitle').textContent = !state.running ? t('status_waiting') : active ? t('status_active') : s.visibility === 'hidden' ? t('status_hidden') : t('status_focus_lost');
+  $('statusSub').textContent = !state.running ? t('sub_waiting') : active ? t('sub_active') : t('sub_inactive');
   $('visibility').textContent = s.visibility;
   $('focus').textContent = s.focus ? 'true' : 'false';
   $('fullscreen').textContent = s.fullscreen ? 'true' : 'false';
-  $('online').textContent = s.online ? 'online' : 'offline';
+  $('online').textContent = s.online ? t('online_value') : t('offline_value');
   $('viewport').textContent = s.viewport;
   $('screen').textContent = s.screen;
   $('dpr').textContent = s.dpr;
@@ -449,7 +526,34 @@ listeners.forEach(([obj,ev,fn])=>obj.addEventListener(ev,fn,{passive:['scroll','
 
 window.addEventListener('load', onLoad);
 
-renderEventFilter();
+// --- Theme ---
+function applyTheme() {
+  document.documentElement.dataset.theme = state.theme;
+  $('themeToggle').textContent = state.theme === 'dark' ? '🌙' : '☀️';
+  $('themeToggle').title = t('theme_toggle_title');
+}
+$('themeToggle').onclick = () => {
+  state.theme = state.theme === 'dark' ? 'light' : 'dark';
+  writeStored('am_theme', state.theme);
+  applyTheme();
+};
+
+// --- Language ---
+function applyLanguage() {
+  document.documentElement.lang = state.lang;
+  document.title = t('app_title');
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.dataset.i18n); });
+  $('langToggle').textContent = state.lang.toUpperCase();
+  $('langToggle').title = t('lang_toggle_title');
+  renderEventFilter();
+  render();
+}
+$('langToggle').onclick = () => {
+  const idx = AVAILABLE_LANGS.indexOf(state.lang);
+  state.lang = AVAILABLE_LANGS[(idx + 1) % AVAILABLE_LANGS.length];
+  writeStored('am_lang', state.lang);
+  applyLanguage();
+};
 
 $('filterToggle').onclick = () => {
   const panel = $('filterPanel');
@@ -512,8 +616,9 @@ $('export').onclick=()=>{
   setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 
+applyTheme();
+applyLanguage(); // also renders the filter panel and calls render() once
 setInterval(render,1000);
-render();
 })();
 </script>
 </body>
