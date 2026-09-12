@@ -125,7 +125,17 @@
     return h ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
   };
   const fmtAgo = ms => ms == null ? '—' : `${(ms/1000).toFixed(1)} с назад`;
-  const stamp = () => new Date().toLocaleTimeString('ru-RU',{hour12:false,fractionalSecondDigits:3});
+  const stamp = () => {
+    const now = new Date();
+  
+    return now.toLocaleTimeString('ru-RU', {
+      hour12: false,
+      hour: '2-digit',
+      minute: '2-digit',
+      second: '2-digit',
+      fractionalSecondDigits: 3
+    });
+  };
   const snapshot = () => ({
     visibility: document.visibilityState,
     hidden: document.hidden,
