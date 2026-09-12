@@ -34,6 +34,71 @@
   tr:last-child td { border-bottom:0; }
   .pill { display:inline-block; padding:3px 7px; border-radius:999px; background:#232a38; font-size:11px; }
   .footer { color:#737b8c; font-size:12px; margin-top:16px; line-height:1.5; }
+  .log-header {
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:11px;
+  }
+  
+  .log-header h2 {
+    margin:0;
+  }
+  
+  .filter-panel {
+    margin-bottom:12px;
+    padding:14px;
+    border:1px solid #292f3c;
+    border-radius:13px;
+    background:#151922;
+  }
+  
+  .filter-title {
+    font-size:13px;
+    font-weight:600;
+    margin-bottom:10px;
+  }
+  
+  .filter-actions {
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  
+  .filter-events {
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(190px, 1fr));
+    gap:7px;
+  }
+  
+  .filter-event {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:7px 9px;
+    border:1px solid #292f3c;
+    border-radius:8px;
+    background:#191e28;
+    cursor:pointer;
+    font-size:12px;
+    user-select:none;
+  }
+  
+  .filter-event:hover {
+    background:#222936;
+  }
+  
+  .filter-event input {
+    margin:0;
+  }
+  
+  .filter-count {
+    color:#9299aa;
+    font-size:12px;
+    margin-left:auto;
+  }
   @media (max-width:900px) { .grid { grid-template-columns:repeat(2,1fr); } }
   @media (max-width:560px) { header { align-items:flex-start; flex-direction:column; } .grid { grid-template-columns:1fr; } main { padding:14px; } }
 </style>
@@ -94,8 +159,27 @@
   </section>
 
   <section class="section">
+  
+  <div class="log-header">
     <h2>Журнал событий</h2>
-    <div class="table-wrap">
+    <button id="filterToggle">⚙ Фильтр</button>
+  </div>
+  
+  <div id="filterPanel" class="filter-panel" hidden>
+    <div class="filter-title">
+      Скрывать выбранные события
+      <span id="filterCount" class="filter-count"></span>
+    </div>
+  
+    <div class="filter-actions">
+      <button id="filterHideAll">Скрыть все</button>
+      <button id="filterShowAll">Показать все</button>
+    </div>
+  
+    <div id="filterEvents" class="filter-events"></div>
+  </div>
+  
+  <div class="table-wrap">
       <table>
         <thead><tr><th>Время</th><th>Событие</th><th>Детали</th></tr></thead>
         <tbody id="log"></tbody>
@@ -116,7 +200,8 @@
     running:false, startedAt:0, pausedAt:0, totalPaused:0,
     lastStateChange:0, activeAccum:0, activeNow:false,
     lastActivity:0, events:[], counts:{hidden:0,blur:0,focus:0,mouse:0,click:0,key:0},
-    lastMouseLog:0
+    lastMouseLog:0,
+    hiddenEventTypes:new Set()
   };
 
   const fmtTime = ms => {
@@ -160,6 +245,7 @@
     if (!state.running) return;
     const e = {time:stamp(), ts:Date.now(), type, details};
     state.events.push(e);
+    if (!$('filterPanel').hidden) renderEventFilter();
     if (state.events.length > 2000) state.events.shift();
     if (type === 'VISIBILITY_HIDDEN') state.counts.hidden++;
     if (type === 'BLUR') state.counts.blur++;
@@ -170,7 +256,40 @@
     state.lastActivity = performance.now();
     render();
   }
-
+  function getEventTypes() {
+    return [...new Set(state.events.map(e => e.type))].sort();
+  }
+  
+  function renderEventFilter() {
+    const container = $('filterEvents');
+    const types = getEventTypes();
+  
+    const knownHidden = new Set(state.hiddenEventTypes);
+  
+    container.innerHTML = types.map(type => {
+      const checked = knownHidden.has(type) ? 'checked' : '';
+  
+      return `
+        <label class="filter-event">
+          <input
+            type="checkbox"
+            data-event-type="${type}"
+            ${checked}
+          >
+          <span>${type}</span>
+        </label>
+      `;
+    }).join('');
+  
+    $('filterCount').textContent =
+      state.hiddenEventTypes.size
+        ? `Скрыто: ${state.hiddenEventTypes.size}`
+        : 'Ничего не скрыто';
+  }
+  
+  function isEventVisible(event) {
+    return !state.hiddenEventTypes.has(event.type);
+  }
   function updateActiveClock() {
     if (!state.running) return;
     const now = performance.now();
@@ -209,9 +328,18 @@
       `<tr><td class="label">${k}</td><td>${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td></tr>`
     ).join('');
 
-    $('log').innerHTML = state.events.slice().reverse().map(e =>
-      `<tr><td>${e.time}</td><td><span class="pill">${e.type}</span></td><td>${Object.entries(e.details).map(([k,v])=>`${k}=${v}`).join(' · ')}</td></tr>`
-    ).join('');
+    $('log').innerHTML = state.events
+      .filter(isEventVisible)
+      .slice()
+      .reverse()
+      .map(e =>
+        `<tr>
+          <td>${e.time}</td>
+          <td><span class="pill">${e.type}</span></td>
+          <td>${Object.entries(e.details).map(([k,v])=>`${k}=${v}`).join(' · ')}</td>
+        </tr>`
+      )
+      .join('');
   }
 
   function onFocus(){ updateActiveClock(); addEvent('FOCUS',{visibility:document.visibilityState}); }
@@ -252,6 +380,47 @@
   ];
   listeners.forEach(([obj,ev,fn])=>obj.addEventListener(ev,fn,{passive:ev==='scroll'}));
 
+  $('filterToggle').onclick = () => {
+    const panel = $('filterPanel');
+  
+    panel.hidden = !panel.hidden;
+  
+    if (!panel.hidden) {
+      renderEventFilter();
+    }
+  };
+  
+  $('filterEvents').addEventListener('change', e => {
+    const input = e.target.closest('input[data-event-type]');
+    if (!input) return;
+  
+    const type = input.dataset.eventType;
+  
+    if (input.checked) {
+      state.hiddenEventTypes.add(type);
+    } else {
+      state.hiddenEventTypes.delete(type);
+    }
+  
+    renderEventFilter();
+    render();
+  });
+  
+  $('filterHideAll').onclick = () => {
+    getEventTypes().forEach(type => {
+      state.hiddenEventTypes.add(type);
+    });
+  
+    renderEventFilter();
+    render();
+  };
+  
+  $('filterShowAll').onclick = () => {
+    state.hiddenEventTypes.clear();
+  
+    renderEventFilter();
+    render();
+  };
   $('start').onclick=()=>{
     if(state.running) return;
     state.running=true; state.startedAt=performance.now(); state.lastStateChange=performance.now();
