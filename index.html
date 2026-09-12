@@ -245,7 +245,6 @@
     if (!state.running) return;
     const e = {time:stamp(), ts:Date.now(), type, details};
     state.events.push(e);
-    if (!$('filterPanel').hidden) renderEventFilter();
     if (state.events.length > 2000) state.events.shift();
     if (type === 'VISIBILITY_HIDDEN') state.counts.hidden++;
     if (type === 'BLUR') state.counts.blur++;
