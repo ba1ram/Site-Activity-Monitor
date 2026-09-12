@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activity Monitor</title>
+<style>
+  :root { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0f1117; color:#e8eaf0; min-height:100vh; }
+  header { padding:22px 28px; border-bottom:1px solid #252a36; display:flex; justify-content:space-between; align-items:center; gap:16px; position:sticky; top:0; background:#0f1117ee; backdrop-filter:blur(12px); z-index:5; }
+  h1 { margin:0; font-size:22px; }
+  .muted { color:#9299aa; font-size:13px; }
+  .controls { display:flex; gap:8px; flex-wrap:wrap; }
+  button { border:1px solid #343b4b; background:#191e28; color:#e8eaf0; padding:9px 13px; border-radius:9px; cursor:pointer; }
+  button:hover { background:#222936; }
+  main { max-width:1250px; margin:0 auto; padding:24px; }
+  .status { border:1px solid #303747; border-radius:16px; padding:22px; margin-bottom:18px; background:#151922; display:flex; align-items:center; gap:18px; }
+  .dot { width:18px; height:18px; border-radius:50%; background:#777; box-shadow:0 0 18px #777; flex:none; }
+  .dot.active { background:#42d77d; box-shadow:0 0 18px #42d77d; }
+  .dot.hidden, .dot.inactive { background:#e2a83b; box-shadow:0 0 18px #e2a83b; }
+  .dot.stopped { background:#e05d6f; box-shadow:0 0 18px #e05d6f; }
+  .status-title { font-size:24px; font-weight:750; }
+  .grid { display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:12px; }
+  .card { background:#151922; border:1px solid #292f3c; border-radius:13px; padding:16px; min-height:92px; }
+  .label { color:#9299aa; font-size:12px; margin-bottom:8px; }
+  .value { font-size:19px; font-weight:650; overflow-wrap:anywhere; }
+  .section { margin-top:22px; }
+  .section h2 { font-size:16px; margin:0 0 11px; }
+  .table-wrap { border:1px solid #292f3c; border-radius:13px; overflow:auto; max-height:430px; background:#151922; }
+  table { width:100%; border-collapse:collapse; font-size:13px; }
+  th,td { padding:10px 12px; text-align:left; border-bottom:1px solid #252a36; white-space:nowrap; }
+  th { color:#9299aa; font-weight:600; position:sticky; top:0; background:#151922; }
+  tr:last-child td { border-bottom:0; }
+  .pill { display:inline-block; padding:3px 7px; border-radius:999px; background:#232a38; font-size:11px; }
+  .footer { color:#737b8c; font-size:12px; margin-top:16px; line-height:1.5; }
+  @media (max-width:900px) { .grid { grid-template-columns:repeat(2,1fr); } }
+  @media (max-width:560px) { header { align-items:flex-start; flex-direction:column; } .grid { grid-template-columns:1fr; } main { padding:14px; } }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Activity Monitor</h1>
+    <div class="muted">Диагностика активности текущей вкладки</div>
+  </div>
+  <div class="controls">
+    <button id="start">Старт</button>
+    <button id="pause">Пауза</button>
+    <button id="clear">Очистить</button>
+    <button id="export">Экспорт JSON</button>
+  </div>
+</header>
+
+<main>
+  <section class="status">
+    <span id="dot" class="dot stopped"></span>
+    <div>
+      <div id="statusTitle" class="status-title">Ожидание</div>
+      <div id="statusSub" class="muted">Нажми «Старт»</div>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card"><div class="label">Visibility</div><div class="value" id="visibility">—</div></div>
+    <div class="card"><div class="label">Focus</div><div class="value" id="focus">—</div></div>
+    <div class="card"><div class="label">Fullscreen</div><div class="value" id="fullscreen">—</div></div>
+    <div class="card"><div class="label">Online</div><div class="value" id="online">—</div></div>
+    <div class="card"><div class="label">Размер viewport</div><div class="value" id="viewport">—</div></div>
+    <div class="card"><div class="label">Размер экрана</div><div class="value" id="screen">—</div></div>
+    <div class="card"><div class="label">Device Pixel Ratio</div><div class="value" id="dpr">—</div></div>
+    <div class="card"><div class="label">Последняя активность</div><div class="value" id="lastActivity">—</div></div>
+  </section>
+
+  <section class="section">
+    <h2>Статистика</h2>
+    <div class="grid">
+      <div class="card"><div class="label">Время мониторинга</div><div class="value" id="monitorTime">00:00</div></div>
+      <div class="card"><div class="label">Активное время*</div><div class="value" id="activeTime">00:00</div></div>
+      <div class="card"><div class="label">Скрыто</div><div class="value" id="hiddenCount">0</div></div>
+      <div class="card"><div class="label">Потеря фокуса</div><div class="value" id="blurCount">0</div></div>
+      <div class="card"><div class="label">Возврат фокуса</div><div class="value" id="focusCount">0</div></div>
+      <div class="card"><div class="label">Движения мыши</div><div class="value" id="mouseCount">0</div></div>
+      <div class="card"><div class="label">Клики</div><div class="value" id="clickCount">0</div></div>
+      <div class="card"><div class="label">Нажатия клавиш</div><div class="value" id="keyCount">0</div></div>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Текущее состояние</h2>
+    <div class="table-wrap">
+      <table><tbody id="details"></tbody></table>
+    </div>
+  </section>
+
+  <section class="section">
+    <h2>Журнал событий</h2>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Время</th><th>Событие</th><th>Детали</th></tr></thead>
+        <tbody id="log"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="footer">
+    * «Активное время» здесь означает время, когда страница была одновременно visible и focused.
+    Это диагностический инструмент браузерных API, а не полноценная система античита.
+  </div>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = {
+    running:false, startedAt:0, pausedAt:0, totalPaused:0,
+    lastStateChange:0, activeAccum:0, activeNow:false,
+    lastActivity:0, events:[], counts:{hidden:0,blur:0,focus:0,mouse:0,click:0,key:0},
+    lastMouseLog:0
+  };
+
+  const fmtTime = ms => {
+    ms = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor(ms/3600), m = Math.floor((ms%3600)/60), s = ms%60;
+    return h ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  };
+  const fmtAgo = ms => ms == null ? '—' : `${(ms/1000).toFixed(1)} с назад`;
+  const stamp = () => new Date().toLocaleTimeString('ru-RU',{hour12:false,fractionalSecondDigits:3});
+  const snapshot = () => ({
+    visibility: document.visibilityState,
+    hidden: document.hidden,
+    focus: document.hasFocus(),
+    fullscreen: !!document.fullscreenElement,
+    online: navigator.onLine,
+    viewport: `${innerWidth} × ${innerHeight}`,
+    outer: `${outerWidth} × ${outerHeight}`,
+    screen: `${screen.width} × ${screen.height}`,
+    availableScreen: `${screen.availWidth} × ${screen.availHeight}`,
+    dpr: devicePixelRatio,
+    colorDepth: screen.colorDepth,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    language: navigator.language,
+    platform: navigator.platform,
+    hardwareConcurrency: navigator.hardwareConcurrency ?? 'N/A',
+    deviceMemory: navigator.deviceMemory ?? 'N/A',
+    url: location.href
+  });
+
+  function addEvent(type, details={}) {
+    if (!state.running) return;
+    const e = {time:stamp(), ts:Date.now(), type, details};
+    state.events.push(e);
+    if (state.events.length > 2000) state.events.shift();
+    if (type === 'VISIBILITY_HIDDEN') state.counts.hidden++;
+    if (type === 'BLUR') state.counts.blur++;
+    if (type === 'FOCUS') state.counts.focus++;
+    if (type === 'MOUSE_MOVE') state.counts.mouse++;
+    if (type === 'CLICK') state.counts.click++;
+    if (type === 'KEY_DOWN') state.counts.key++;
+    state.lastActivity = performance.now();
+    render();
+  }
+
+  function updateActiveClock() {
+    if (!state.running) return;
+    const now = performance.now();
+    if (state.activeNow) state.activeAccum += now - state.lastStateChange;
+    state.lastStateChange = now;
+    state.activeNow = document.visibilityState === 'visible' && document.hasFocus();
+  }
+
+  function render() {
+    const s = snapshot();
+    const active = state.running && s.visibility === 'visible' && s.focus;
+    $('dot').className = 'dot ' + (!state.running ? 'stopped' : active ? 'active' : s.visibility === 'hidden' ? 'hidden' : 'inactive');
+    $('statusTitle').textContent = !state.running ? 'Ожидание' : active ? 'ACTIVE' : s.visibility === 'hidden' ? 'HIDDEN' : 'FOCUS LOST';
+    $('statusSub').textContent = !state.running ? 'Нажми «Старт»' : active ? 'Страница видима и имеет фокус' : 'Страница не находится в обычном активном состоянии';
+
+    $('visibility').textContent = s.visibility;
+    $('focus').textContent = s.focus ? 'true' : 'false';
+    $('fullscreen').textContent = s.fullscreen ? 'true' : 'false';
+    $('online').textContent = s.online ? 'online' : 'offline';
+    $('viewport').textContent = s.viewport;
+    $('screen').textContent = s.screen;
+    $('dpr').textContent = s.dpr;
+    $('lastActivity').textContent = state.lastActivity ? fmtAgo(performance.now()-state.lastActivity) : '—';
+
+    const elapsed = state.running ? performance.now()-state.startedAt : 0;
+    $('monitorTime').textContent = fmtTime(elapsed);
+    $('activeTime').textContent = fmtTime(state.activeAccum + (active ? performance.now()-state.lastStateChange : 0));
+    $('hiddenCount').textContent = state.counts.hidden;
+    $('blurCount').textContent = state.counts.blur;
+    $('focusCount').textContent = state.counts.focus;
+    $('mouseCount').textContent = state.counts.mouse;
+    $('clickCount').textContent = state.counts.click;
+    $('keyCount').textContent = state.counts.key;
+
+    $('details').innerHTML = Object.entries(s).map(([k,v]) =>
+      `<tr><td class="label">${k}</td><td>${String(v).replace(/&/g,'&amp;').replace(/</g,'&lt;')}</td></tr>`
+    ).join('');
+
+    $('log').innerHTML = state.events.slice().reverse().map(e =>
+      `<tr><td>${e.time}</td><td><span class="pill">${e.type}</span></td><td>${Object.entries(e.details).map(([k,v])=>`${k}=${v}`).join(' · ')}</td></tr>`
+    ).join('');
+  }
+
+  function onFocus(){ updateActiveClock(); addEvent('FOCUS',{visibility:document.visibilityState}); }
+  function onBlur(){ updateActiveClock(); addEvent('BLUR',{visibility:document.visibilityState}); }
+  function onVisibility(){
+    updateActiveClock();
+    addEvent(document.visibilityState === 'hidden' ? 'VISIBILITY_HIDDEN':'VISIBILITY_VISIBLE',{
+      hidden:document.hidden, focus:document.hasFocus()
+    });
+  }
+  function onMouse(e){
+    if (!state.running) return;
+    const t=performance.now();
+    if(t-state.lastMouseLog<500) return;
+    state.lastMouseLog=t;
+    addEvent('MOUSE_MOVE',{x:e.clientX,y:e.clientY,screenX:e.screenX,screenY:e.screenY});
+  }
+  function onClick(e){ addEvent('CLICK',{x:e.clientX,y:e.clientY,target:e.target?.tagName||''}); }
+  function onKeyDown(e){ addEvent('KEY_DOWN',{key:e.key,code:e.code,ctrl:e.ctrlKey,shift:e.shiftKey,alt:e.altKey,meta:e.metaKey}); }
+  function onKeyUp(e){ addEvent('KEY_UP',{key:e.key,code:e.code}); }
+  function onResize(){ addEvent('RESIZE',{innerWidth,innerHeight,outerWidth,outerHeight,dpr:devicePixelRatio}); }
+  function onScroll(){ addEvent('SCROLL',{x:scrollX,y:scrollY}); }
+  function onFullscreen(){ addEvent('FULLSCREEN_CHANGE',{fullscreen:!!document.fullscreenElement}); }
+  function onOnline(){ addEvent('ONLINE'); }
+  function onOffline(){ addEvent('OFFLINE'); }
+  function onPageShow(e){ addEvent('PAGESHOW',{persisted:e.persisted}); }
+  function onPageHide(e){ addEvent('PAGEHIDE',{persisted:e.persisted}); }
+
+  const listeners = [
+    [window,'focus',onFocus],[window,'blur',onBlur],
+    [document,'visibilitychange',onVisibility],
+    [window,'mousemove',onMouse],[window,'click',onClick],
+    [window,'keydown',onKeyDown],[window,'keyup',onKeyUp],
+    [window,'resize',onResize],[window,'scroll',onScroll],
+    [document,'fullscreenchange',onFullscreen],
+    [window,'online',onOnline],[window,'offline',onOffline],
+    [window,'pageshow',onPageShow],[window,'pagehide',onPageHide]
+  ];
+  listeners.forEach(([obj,ev,fn])=>obj.addEventListener(ev,fn,{passive:ev==='scroll'}));
+
+  $('start').onclick=()=>{
+    if(state.running) return;
+    state.running=true; state.startedAt=performance.now(); state.lastStateChange=performance.now();
+    state.activeNow=document.visibilityState==='visible' && document.hasFocus();
+    state.lastActivity=performance.now();
+    addEvent('MONITOR_STARTED', snapshot());
+    render();
+  };
+  $('pause').onclick=()=>{
+    if(!state.running) return;
+    updateActiveClock();
+    state.running=false;
+    state.pausedAt=performance.now();
+    addEvent('MONITOR_PAUSED');
+    render();
+  };
+  $('clear').onclick=()=>{
+    state.events=[]; state.counts={hidden:0,blur:0,focus:0,mouse:0,click:0,key:0};
+    state.activeAccum=0; state.startedAt=state.running?performance.now():0; state.lastStateChange=performance.now();
+    state.activeNow=state.running && document.visibilityState==='visible' && document.hasFocus();
+    state.lastActivity=state.running?performance.now():0;
+    render();
+  };
+  $('export').onclick=()=>{
+    const payload={exportedAt:new Date().toISOString(),snapshot:snapshot(),statistics:state.counts,events:state.events};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+    const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='activity-monitor.json'; a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  };
+
+  setInterval(render,1000);
+  render();
+})();
+</script>
+</body>
+</html>
