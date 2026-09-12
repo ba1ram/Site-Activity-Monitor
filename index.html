@@ -245,6 +245,7 @@
     if (!state.running) return;
     const e = {time:stamp(), ts:Date.now(), type, details};
     state.events.push(e);
+    updateEventFilterIfNeeded(type);
     if (state.events.length > 2000) state.events.shift();
     if (type === 'VISIBILITY_HIDDEN') state.counts.hidden++;
     if (type === 'BLUR') state.counts.blur++;
@@ -285,7 +286,29 @@
         ? `Скрыто: ${state.hiddenEventTypes.size}`
         : 'Ничего не скрыто';
   }
+  function updateEventFilterIfNeeded(type) {
+    if ($('filterPanel').hidden) return;
   
+    const container = $('filterEvents');
+  
+    if (container.querySelector(`input[data-event-type="${CSS.escape(type)}"]`)) {
+      return;
+    }
+  
+    const label = document.createElement('label');
+    label.className = 'filter-event';
+  
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.dataset.eventType = type;
+  
+    const span = document.createElement('span');
+    span.textContent = type;
+  
+    label.appendChild(input);
+    label.appendChild(span);
+    container.appendChild(label);
+  }
   function isEventVisible(event) {
     return !state.hiddenEventTypes.has(event.type);
   }
